@@ -51,9 +51,9 @@ def init_parse() -> argparse.ArgumentParser:
 def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     w, h = size
     img = Image.open(image_path).convert("RGB").resize((w, h), Image.LANCZOS)
-    resized_path = image_path.parent / f"{image_path.stem}_resized_{w}x{h}.png"
-    print(f"Saved resized image to: {resized_path}")
-    img.save(resized_path)
+    # resized_path = image_path.parent / f"{image_path.stem}_resized_{w}x{h}.png"
+    # print(f"Saved resized image to: {resized_path}")
+    # img.save(resized_path)
     pixels = list(img.getdata())
 
     # transform colors for each pixel to nearest Lego color
