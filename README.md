@@ -4,10 +4,18 @@ The goal is to upload a photo, and then convert it to a matrix of 1x1 Lego piece
 
 The entire photo should be squared, and could fit various Lego board sizes.
 
+# TODOs
+- [X] Build structure with classes
+- [X] Transform image to matrix
+- [X] Use colors from Lego
+- [X] Output a render 
+- [ ] List necessary pieces
+- [ ] Connect with BrickLink
+    - [ ] Get colors from BrickLink
+    - [ ] Make an automatic basket
+    - [ ] Print price with details
+...
+- [ ] Add relief on some images
 
-## Connection with BrickLink
-
+## What is BrickLink ?
 BrickLink is a website where you can buy Lego pieces by unit. This app should build a basket with needed pieces.
-
-## Future upgrade
-Add relief to some pieces (by using smoother pieces)
