@@ -5,27 +5,30 @@ import argparse
 from pathlib import Path
 from PIL import Image, ImageDraw
 
+
 def init_parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog='Image to Lego Board',
-        description='Transform an image into a Lego board plan',
-        epilog='Thank you for using this program! - gderybel'
+        prog="Image to Lego Board",
+        description="Transform an image into a Lego board plan",
+        epilog="Thank you for using this program! - gderybel",
     )
 
     # build a list of available baseplate sizes from LegoPiece constants
-    available_sizes = sorted({getattr(LegoPiece, a)[0] for a in dir(LegoPiece) if a.startswith("BASEPLATE_")})
+    available_sizes = sorted(
+        {getattr(LegoPiece, a)[0] for a in dir(LegoPiece) if a.startswith("BASEPLATE_")}
+    )
     sizes_str = ", ".join(str(s) for s in available_sizes)
 
     def valid_image_path(p: str) -> Path:
         path = Path(p)
         if not path.is_file():
-            raise argparse.ArgumentTypeError(f"image_path '{p}' does not exist or is not a file")
+            raise argparse.ArgumentTypeError(
+                f"image_path '{p}' does not exist or is not a file"
+            )
         return path
 
     parser.add_argument(
-        "image_path",
-        help="Path to the input image file",
-        type=valid_image_path
+        "image_path", help="Path to the input image file", type=valid_image_path
     )
 
     def valid_size(s: str) -> int:
@@ -35,7 +38,9 @@ def init_parse() -> argparse.ArgumentParser:
             raise argparse.ArgumentTypeError(f"size '{s}' is not a valid integer")
         attr = f"BASEPLATE_{size}_{size}"
         if not hasattr(LegoPiece, attr):
-            raise argparse.ArgumentTypeError(f"size '{size}' is not supported. Sizes available are : {sizes_str}.")
+            raise argparse.ArgumentTypeError(
+                f"size '{size}' is not supported. Sizes available are : {sizes_str}."
+            )
         return getattr(LegoPiece, attr)
 
     parser.add_argument(
@@ -43,10 +48,11 @@ def init_parse() -> argparse.ArgumentParser:
         "--size",
         default=LegoPiece.BASEPLATE_32_32,
         type=valid_size,
-        help="Size of the Lego baseplate (default: 32)"
+        help="Size of the Lego baseplate (default: 32)",
     )
 
     return parser
+
 
 def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     w, h = size
@@ -63,10 +69,15 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
         mapped.append(closest_color)
 
     # Turn flat mapped list into matrix rows (height rows, each width long)
-    matrix: list[list[tuple[int,int,int]]] = [mapped[row_start:row_start + w] for row_start in range(0, w * h, w)]
+    matrix: list[list[tuple[int, int, int]]] = [
+        mapped[row_start : row_start + w] for row_start in range(0, w * h, w)
+    ]
     return matrix
 
-def render_matrix_to_image(matrix: list[list[str]], stud_size: int = 20, show_studs: bool = True) -> Image.Image:
+
+def render_matrix_to_image(
+    matrix: list[list[str]], stud_size: int = 20, show_studs: bool = True
+) -> Image.Image:
     h = len(matrix)
     w = len(matrix[0]) if h else 0
     img_w = w * stud_size
@@ -92,9 +103,12 @@ def render_matrix_to_image(matrix: list[list[str]], stud_size: int = 20, show_st
                 r = stud_size * 0.35
                 stud_fill = tuple(min(255, int(c * 1.15)) for c in cell)
                 outline = (0, 0, 0)
-                draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=stud_fill, outline=outline)
+                draw.ellipse(
+                    [cx - r, cy - r, cx + r, cy + r], fill=stud_fill, outline=outline
+                )
 
     return img
+
 
 def main():
     # Parse command-line arguments
@@ -105,12 +119,15 @@ def main():
 
     # Define default baseplate
     baseplate = LegoPiece(LegoType.BASEPLATE, LegoColor.WHITE, size)
-    print(f"Created a {baseplate.color} {baseplate.piece_type} of size {baseplate.size}")
+    print(
+        f"Created a {baseplate.color} {baseplate.piece_type} of size {baseplate.size}"
+    )
     matrix = image_to_matrix(image_path, baseplate.size)
 
     out_image = render_matrix_to_image(matrix, stud_size=20, show_studs=True)
     out_path = image_path.parent / f"{image_path.stem}_lego.png"
     out_image.save(out_path)
     print(f"Saved rendered lego image to: {out_path}")
+
 
 main()

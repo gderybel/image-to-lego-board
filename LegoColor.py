@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+
 class LegoColor:
     def __init__(self, hex_code):
         self.hex_code = hex_code
@@ -105,9 +106,9 @@ class LegoColor:
         if isinstance(v, (tuple, list)) and len(v) == 3:
             return (int(v[0]), int(v[1]), int(v[2]))
         if isinstance(v, str):
-            s = v.lstrip('#')
+            s = v.lstrip("#")
             if len(s) == 6:
-                return tuple(int(s[i:i+2], 16) for i in (0, 2, 4))
+                return tuple(int(s[i : i + 2], 16) for i in (0, 2, 4))
         raise ValueError(f"unsupported color format: {v!r}")
 
     @staticmethod
@@ -129,7 +130,7 @@ class LegoColor:
 
     def get_closest_color(self) -> str:
         r1, g1, b1 = self._to_rgb(self.hex_code)
-        best_dist = float('inf')
+        best_dist = float("inf")
         best_color = None
         for _, (r2, g2, b2) in self.get_lego_colors().items():
             dist = (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2
