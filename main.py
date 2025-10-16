@@ -4,6 +4,7 @@ from LegoType import LegoType
 import argparse
 from pathlib import Path
 from PIL import Image, ImageDraw
+from collections import Counter
 
 
 def init_parse() -> argparse.ArgumentParser:
@@ -75,6 +76,15 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     return matrix
 
 
+def get_block_list(matrix: list[list]) -> None:
+    flat = [cell for row in matrix for cell in row]
+    counts = Counter(flat)
+
+    for color, count in counts.most_common():
+        plural = "s" if count != 1 else ""
+        print(f"You need {count} piece{plural} of color {color}")
+
+
 def render_matrix_to_image(
     matrix: list[list[str]], stud_size: int = 20, show_studs: bool = True
 ) -> Image.Image:
@@ -119,10 +129,9 @@ def main():
 
     # Define default baseplate
     baseplate = LegoPiece(LegoType.BASEPLATE, LegoColor.WHITE, size)
-    print(
-        f"Created a {baseplate.color} {baseplate.piece_type} of size {baseplate.size}"
-    )
     matrix = image_to_matrix(image_path, baseplate.size)
+
+    get_block_list(matrix)
 
     out_image = render_matrix_to_image(matrix, stud_size=20, show_studs=True)
     out_path = image_path.parent / f"{image_path.stem}_lego.png"
