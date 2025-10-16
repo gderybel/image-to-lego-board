@@ -1,142 +1,130 @@
 from functools import lru_cache
+from Color import Color
 
 
-class LegoColor:
-    def __init__(self, hex_code):
-        self.hex_code = hex_code
-
-    # Color variables
-    AQUA = "BCE5DC"
-    BLACK = "212121"
-    BLUE = "0057A6"
-    BRIGHT_GREEN = "10CB31"
-    BRIGHT_LIGHT_BLUE = "BCD1ED"
-    BRIGHT_LIGHT_ORANGE = "FFC700"
-    BRIGHT_LIGHT_YELLOW = "FFF08C"
-    BRIGHT_PINK = "F7BCDA"
-    BROWN = "6B3F22"
-    CORAL = "FF8172"
-    DARK_AZURE = "009FE0"
-    DARK_BLUE = "243757"
-    DARK_BLUISH_GRAY = "595D60"
-    DARK_BROWN = "50372F"
-    DARK_GRAY = "6B5A5A"
-    DARK_GREEN = "2E5543"
-    DARK_NOUGAT = "CE7942"
-    DARK_ORANGE = "B35408"
-    DARK_PINK = "EF5BB3"
-    DARK_PURPLE = "5F2683"
-    DARK_RED = "6A0E15"
-    DARK_TAN = "B89869"
-    DARK_TURQUOISE = "00A29F"
-    DARK_YELLOW = "DD982E"
-    GREEN = "00923D"
-    LAVENDER = "D3BDE3"
-    LIGHT_AQUA = "CFEFEA"
-    LIGHT_BLUISH_GRAY = "AFB5C7"
-    LIGHT_BROWN = "99663E"
-    LIGHT_GRAY = "9C9C9C"
-    LIGHT_GREEN = "D7EED1"
-    LIGHT_NOUGAT = "FECCB0"
-    LIGHT_ORANGE = "FFBC36"
-    LIGHT_SALMON = "FCC7B7"
-    LIGHT_TURQUOISE = "00C5BC"
-    LIGHT_YELLOW = "FEE89F"
-    LIME = "C4E000"
-    MAERSK_BLUE = "7DC1D8"
-    MAGENTA = "B72276"
-    MEDIUM_AZURE = "6ACEE0"
-    MEDIUM_BLUE = "82ADD8"
-    MEDIUM_LAVENDER = "C689D9"
-    MEDIUM_NOUGAT = "E3A05B"
-    MEDIUM_ORANGE = "FFA531"
-    MEDIUM_VIOLET = "9391E4"
-    NEON_YELLOW = "FFFC00"
-    NOUGAT = "FFAF7D"
-    OLIVE_GREEN = "ABA953"
-    ORANGE = "FF7E14"
-    PINK = "F5CDD6"
-    PURPLE = "7A238D"
-    RED = "B30006"
-    REDDISH_BROWN = "82422A"
-    REDDISH_ORANGE = "FF5500"
-    ROSE_PINK = "F2D3D1"
-    RUST = "B24817"
-    SAND_BLUE = "8899AB"
-    SAND_GREEN = "A2BFA3"
-    TAN = "EED9A4"
-    VERY_LIGHT_BLUISH_GRAY = "E4E8E8"
-    VERY_LIGHT_GRAY = "E8E8E8"
-    VERY_LIGHT_ORANGE = "FFDCA4"
-    WHITE = "FFFFFF"
-    YELLOW = "FFE001"
-    YELLOWISH_GREEN = "E7F2A7"
-    TRANS_AQUA = "B7C8BF"
-    TRANS_BLACK = "777777"
-    TRANS_BRIGHT_GREEN = "10CB31"
-    TRANS_BROWN = "939484"
-    TRANS_CLEAR = "EEEEEE"
-    TRANS_DARK_BLUE = "00296B"
-    TRANS_GREEN = "217625"
-    TRANS_LIGHT_BLUE = "68BCC5"
-    TRANS_LIGHT_BRIGHT_GREEN = "71EB54"
-    TRANS_LIGHT_ORANGE = "E99A3A"
-    TRANS_MEDIUM_BLUE = "76A3C8"
-    TRANS_NEON_GREEN = "C0F500"
-    TRANS_NEON_ORANGE = "FF4231"
-    TRANS_NEON_YELLOW = "FFD700"
-    TRANS_ORANGE = "E96F01"
-    TRANS_PURPLE = "5525B7"
-    TRANS_RED = "9C0010"
-    TRANS_YELLOW = "EBF72D"
-    CHROME_GOLD = "F1F2E1"
-    FLAT_DARK_GOLD = "AD7118"
-    FLAT_SILVER = "8D949C"
-    PEARL_GOLD = "E79E1D"
-    PEARL_LIGHT_GOLD = "E7AE5A"
-    PEARL_LIGHT_GRAY = "ACB7C0"
-    SATIN_TRANS_LIGHT_BLUE = "68BCC5"
-    METALLIC_GOLD = "B8860B"
-    METALLIC_SILVER = "C0C0C0"
-    MILKY_WHITE = "D4D3DD"
-    GLITTER_TRANS_LIGHT_BLUE = "68BCC5"
+class LegoColor(Color):
+    def __init__(self, name: str, hex_code: str):
+        self.name = name
+        super().__init__(hex_code)
 
     @staticmethod
-    def _to_rgb(v) -> tuple[int, int, int]:
-        if isinstance(v, (tuple, list)) and len(v) == 3:
-            return (int(v[0]), int(v[1]), int(v[2]))
-        if isinstance(v, str):
-            s = v.lstrip("#")
-            if len(s) == 6:
-                return tuple(int(s[i : i + 2], 16) for i in (0, 2, 4))
-        raise ValueError(f"unsupported color format: {v!r}")
-
-    @staticmethod
-    @lru_cache(maxsize=1)
-    def get_lego_colors() -> dict[str, tuple[int, int, int]]:
-        colors: dict[str, tuple[int, int, int]] = {}
-        for name in dir(LegoColor):
-            if not name.isupper():
-                continue
-            try:
-                val = getattr(LegoColor, name)
-                rgb = LegoColor._to_rgb(val)
-                colors[name] = rgb
-            except Exception:
-                continue
-        if not colors:
-            raise RuntimeError("No LegoColor constants found / supported formats.")
-        return colors
-
-    def get_closest_color(self) -> str:
-        r1, g1, b1 = self._to_rgb(self.hex_code)
+    def get_closest_lego_color(color: Color) -> "LegoColor":
+        r1, g1, b1 = color.rgb_code
         best_dist = float("inf")
         best_color = None
-        for _, (r2, g2, b2) in self.get_lego_colors().items():
+        for lego_color in lego_colors:
+            r2, g2, b2 = lego_color.rgb_code
             dist = (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2
             if dist < best_dist:
                 best_dist = dist
-                best_color = (r2, g2, b2)
+                best_color = lego_color
         if best_color is None:
             raise RuntimeError("No LegoColor constants found / supported formats.")
         return best_color
+
+    @staticmethod
+    @lru_cache(maxsize=256)
+    def get_lego_color_by_name(name: str) -> "LegoColor":
+        key = name.strip().upper()
+        for lego_color in lego_colors:
+            if lego_color.name == key:
+                return lego_color
+        raise ValueError(f"No LegoColor named '{name}'")
+
+
+lego_colors = [
+    LegoColor("AQUA", "#BCE5DC"),
+    LegoColor("BLACK", "#212121"),
+    LegoColor("BLUE", "#0057A6"),
+    LegoColor("BRIGHT_GREEN", "#10CB31"),
+    LegoColor("BRIGHT_LIGHT_BLUE", "#BCD1ED"),
+    LegoColor("BRIGHT_LIGHT_ORANGE", "#FFC700"),
+    LegoColor("BRIGHT_LIGHT_YELLOW", "#FFF08C"),
+    LegoColor("BRIGHT_PINK", "#F7BCDA"),
+    LegoColor("BROWN", "#6B3F22"),
+    LegoColor("CORAL", "#FF8172"),
+    LegoColor("DARK_AZURE", "#009FE0"),
+    LegoColor("DARK_BLUE", "#243757"),
+    LegoColor("DARK_BLUISH_GRAY", "#595D60"),
+    LegoColor("DARK_BROWN", "#50372F"),
+    LegoColor("DARK_GRAY", "#6B5A5A"),
+    LegoColor("DARK_GREEN", "#2E5543"),
+    LegoColor("DARK_NOUGAT", "#CE7942"),
+    LegoColor("DARK_ORANGE", "#B35408"),
+    LegoColor("DARK_PINK", "#EF5BB3"),
+    LegoColor("DARK_PURPLE", "#5F2683"),
+    LegoColor("DARK_RED", "#6A0E15"),
+    LegoColor("DARK_TAN", "#B89869"),
+    LegoColor("DARK_TURQUOISE", "#00A29F"),
+    LegoColor("DARK_YELLOW", "#DD982E"),
+    LegoColor("GREEN", "#00923D"),
+    LegoColor("LAVENDER", "#D3BDE3"),
+    LegoColor("LIGHT_AQUA", "#CFEFEA"),
+    LegoColor("LIGHT_BLUISH_GRAY", "#AFB5C7"),
+    LegoColor("LIGHT_BROWN", "#99663E"),
+    LegoColor("LIGHT_GRAY", "#9C9C9C"),
+    LegoColor("LIGHT_GREEN", "#D7EED1"),
+    LegoColor("LIGHT_NOUGAT", "#FECCB0"),
+    LegoColor("LIGHT_ORANGE", "#FFBC36"),
+    LegoColor("LIGHT_SALMON", "#FCC7B7"),
+    LegoColor("LIGHT_TURQUOISE", "#00C5BC"),
+    LegoColor("LIGHT_YELLOW", "#FEE89F"),
+    LegoColor("LIME", "#C4E000"),
+    LegoColor("MAERSK_BLUE", "#7DC1D8"),
+    LegoColor("MAGENTA", "#B72276"),
+    LegoColor("MEDIUM_AZURE", "#6ACEE0"),
+    LegoColor("MEDIUM_BLUE", "#82ADD8"),
+    LegoColor("MEDIUM_LAVENDER", "#C689D9"),
+    LegoColor("MEDIUM_NOUGAT", "#E3A05B"),
+    LegoColor("MEDIUM_ORANGE", "#FFA531"),
+    LegoColor("MEDIUM_VIOLET", "#9391E4"),
+    LegoColor("NEON_YELLOW", "#FFFC00"),
+    LegoColor("NOUGAT", "#FFAF7D"),
+    LegoColor("OLIVE_GREEN", "#ABA953"),
+    LegoColor("ORANGE", "#FF7E14"),
+    LegoColor("PINK", "#F5CDD6"),
+    LegoColor("PURPLE", "#7A238D"),
+    LegoColor("RED", "#B30006"),
+    LegoColor("REDDISH_BROWN", "#82422A"),
+    LegoColor("REDDISH_ORANGE", "#FF5500"),
+    LegoColor("ROSE_PINK", "#F2D3D1"),
+    LegoColor("RUST", "#B24817"),
+    LegoColor("SAND_BLUE", "#8899AB"),
+    LegoColor("SAND_GREEN", "#A2BFA3"),
+    LegoColor("TAN", "#EED9A4"),
+    LegoColor("VERY_LIGHT_BLUISH_GRAY", "#E4E8E8"),
+    LegoColor("VERY_LIGHT_GRAY", "#E8E8E8"),
+    LegoColor("VERY_LIGHT_ORANGE", "#FFDCA4"),
+    LegoColor("WHITE", "#FFFFFF"),
+    LegoColor("YELLOW", "#FFE001"),
+    LegoColor("YELLOWISH_GREEN", "#E7F2A7"),
+    LegoColor("TRANS_AQUA", "#B7C8BF"),
+    LegoColor("TRANS_BLACK", "#777777"),
+    LegoColor("TRANS_BRIGHT_GREEN", "#10CB31"),
+    LegoColor("TRANS_BROWN", "#939484"),
+    LegoColor("TRANS_CLEAR", "#EEEEEE"),
+    LegoColor("TRANS_DARK_BLUE", "#00296B"),
+    LegoColor("TRANS_GREEN", "#217625"),
+    LegoColor("TRANS_LIGHT_BLUE", "#68BCC5"),
+    LegoColor("TRANS_LIGHT_BRIGHT_GREEN", "#71EB54"),
+    LegoColor("TRANS_LIGHT_ORANGE", "#E99A3A"),
+    LegoColor("TRANS_MEDIUM_BLUE", "#76A3C8"),
+    LegoColor("TRANS_NEON_GREEN", "#C0F500"),
+    LegoColor("TRANS_NEON_ORANGE", "#FF4231"),
+    LegoColor("TRANS_NEON_YELLOW", "#FFD700"),
+    LegoColor("TRANS_ORANGE", "#E96F01"),
+    LegoColor("TRANS_PURPLE", "#5525B7"),
+    LegoColor("TRANS_RED", "#9C0010"),
+    LegoColor("TRANS_YELLOW", "#EBF72D"),
+    LegoColor("CHROME_GOLD", "#F1F2E1"),
+    LegoColor("FLAT_DARK_GOLD", "#AD7118"),
+    LegoColor("FLAT_SILVER", "#8D949C"),
+    LegoColor("PEARL_GOLD", "#E79E1D"),
+    LegoColor("PEARL_LIGHT_GOLD", "#E7AE5A"),
+    LegoColor("PEARL_LIGHT_GRAY", "#ACB7C0"),
+    LegoColor("SATIN_TRANS_LIGHT_BLUE", "#68BCC5"),
+    LegoColor("METALLIC_GOLD", "#B8860B"),
+    LegoColor("METALLIC_SILVER", "#C0C0C0"),
+    LegoColor("MILKY_WHITE", "#D4D3DD"),
+    LegoColor("GLITTER_TRANS_LIGHT_BLUE", "#68BCC5"),
+]
