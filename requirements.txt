@@ -1,3 +1,4 @@
 argparse
 pathlib
 pillow
+bs4
