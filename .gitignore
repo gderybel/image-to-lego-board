@@ -5,3 +5,9 @@ include
 lib
 lib64
 pyvenv.cfg
+*.png
+*.jpg
+*.jpeg
+*.gif
+.DS_Store
+.vscode/

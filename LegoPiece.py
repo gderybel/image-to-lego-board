@@ -23,21 +23,21 @@ class LegoPiece:
 
 lego_baseplates = [
     LegoPiece(
-        LegoType.BASEPLATE_14_14, LegoColor.get_lego_color_by_name("WHITE"), (14, 14)
+        LegoType.BASEPLATE_14_14, LegoColor.get_lego_color_by_name("White"), (14, 14)
     ),
     LegoPiece(
-        LegoType.BASEPLATE_16_16, LegoColor.get_lego_color_by_name("WHITE"), (16, 16)
+        LegoType.BASEPLATE_16_16, LegoColor.get_lego_color_by_name("White"), (16, 16)
     ),
     LegoPiece(
-        LegoType.BASEPLATE_24_24, LegoColor.get_lego_color_by_name("WHITE"), (24, 24)
+        LegoType.BASEPLATE_24_24, LegoColor.get_lego_color_by_name("White"), (24, 24)
     ),
     LegoPiece(
-        LegoType.BASEPLATE_32_32, LegoColor.get_lego_color_by_name("WHITE"), (32, 32)
+        LegoType.BASEPLATE_32_32, LegoColor.get_lego_color_by_name("White"), (32, 32)
     ),
     LegoPiece(
-        LegoType.BASEPLATE_40_40, LegoColor.get_lego_color_by_name("WHITE"), (40, 40)
+        LegoType.BASEPLATE_40_40, LegoColor.get_lego_color_by_name("White"), (40, 40)
     ),
     LegoPiece(
-        LegoType.BASEPLATE_48_48, LegoColor.get_lego_color_by_name("WHITE"), (48, 48)
+        LegoType.BASEPLATE_48_48, LegoColor.get_lego_color_by_name("White"), (48, 48)
     ),
 ]

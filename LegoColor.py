@@ -1,10 +1,16 @@
 from functools import lru_cache
 from Color import Color
-from BrickLinkConnector import BrickLinkConnector
 
 
 class LegoColor(Color):
-    def __init__(self, bricklink_name: str, lego_name: str, bricklink_id: str, lego_id:str, hex_code: str):
+    def __init__(
+        self,
+        bricklink_name: str,
+        lego_name: str,
+        bricklink_id: str,
+        lego_id: str,
+        hex_code: str,
+    ):
         self.bricklink_name = bricklink_name
         self.lego_name = lego_name
         self.bricklink_id = bricklink_id
@@ -13,6 +19,8 @@ class LegoColor(Color):
 
     @staticmethod
     def get_closest_lego_color(color: Color) -> "LegoColor":
+        from BrickLinkConnector import BrickLinkConnector
+
         lego_colors = BrickLinkConnector.get_piece_colors()
         r1, g1, b1 = color.rgb_code
         best_dist = float("inf")
@@ -30,9 +38,10 @@ class LegoColor(Color):
     @staticmethod
     @lru_cache(maxsize=256)
     def get_lego_color_by_name(name: str) -> "LegoColor":
+        from BrickLinkConnector import BrickLinkConnector
+
         lego_colors = BrickLinkConnector.get_piece_colors()
-        key = name.strip().upper()
         for lego_color in lego_colors:
-            if lego_color.bricklink_name == key:
+            if lego_color.lego_name == name:
                 return lego_color
         raise ValueError(f"No LegoColor named '{name}'")

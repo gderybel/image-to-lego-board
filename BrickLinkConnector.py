@@ -1,9 +1,8 @@
 from LegoPiece import LegoPiece
-from LegoColor import LegoColor
 import requests
 from bs4 import BeautifulSoup
 import re
-import lru_cache
+from functools import lru_cache
 
 
 class BrickLinkConnector:
@@ -30,10 +29,12 @@ class BrickLinkConnector:
     @staticmethod
     @lru_cache(maxsize=255)
     def get_piece_colors(type: str = "solid") -> list[str]:
+        from LegoColor import LegoColor
+
         url = f"{BrickLinkConnector.color_url}"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
-        
+
         pattern = re.compile(
             r"--bl-castor-table-swatch-with-image-background-color:\s*(#[0-9a-fA-F]{3,6})"
         )
@@ -53,17 +54,21 @@ class BrickLinkConnector:
                 if match:
                     color_hex = match.group(1)
 
-            color_info_td = tr.find("td", class_="color-list-wide-viewport_cellListViewColorName__rVQgC")
+            color_info_td = tr.find(
+                "td", class_="color-list-wide-viewport_cellListViewColorName__rVQgC"
+            )
             if color_info_td:
                 name_tag = color_info_td.find("p")
                 if name_tag:
                     bricklink_name = name_tag.get_text(strip=True)
                 span_tag = color_info_td.find("span")
                 if span_tag:
-                    lego_color = span_tag.get_text(strip=True).replace("LEGO Color:", "")
-                    match = re.match(r'^(.*?)\s*-\s*(\d+)$', lego_color)
+                    lego_color = span_tag.get_text(strip=True).replace(
+                        "LEGO Color:", ""
+                    )
+                    match = re.match(r"^(.*?)\s*-\s*(\d+)$", lego_color)
                     if match:
-                        lego_name= match.group(1)
+                        lego_name = match.group(1)
                         lego_id = int(match.group(2))
 
             tds = tr.find_all("td")
@@ -77,7 +82,7 @@ class BrickLinkConnector:
                         lego_name=lego_name,
                         bricklink_id=bricklink_id,
                         lego_id=lego_id,
-                        hex_code=color_hex
+                        hex_code=color_hex,
                     )
                 )
 

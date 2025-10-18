@@ -2,3 +2,5 @@ argparse
 pathlib
 pillow
 bs4
+requests
+lru_cache
