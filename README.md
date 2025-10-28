@@ -10,8 +10,9 @@ The entire photo should be squared, and could fit various Lego board sizes.
 - [X] Use colors from Lego
 - [X] Output a render 
 - [X] List necessary pieces
+- [X] Add a matrix index on photo border
 - [ ] Connect with BrickLink
-    - [ ] Get colors from BrickLink
+    - [X] Get colors from BrickLink
     - [ ] Make an automatic basket
     - [ ] Print price with details
 ...

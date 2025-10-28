@@ -3,7 +3,7 @@ from LegoColor import LegoColor
 from LegoType import LegoType
 import argparse
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from collections import Counter
 from Color import Color
 
@@ -93,16 +93,47 @@ def render_matrix_to_image(
 ) -> Image.Image:
     h = len(matrix)
     w = len(matrix[0]) if h else 0
-    img_w = w * stud_size
-    img_h = h * stud_size
+
+    index_space = stud_size * 2 // 3
+    img_w = w * stud_size + index_space
+    img_h = h * stud_size + index_space
 
     img = Image.new("RGB", (img_w, img_h), (240, 240, 240))
     draw = ImageDraw.Draw(img)
+    font = ImageFont.load_default()
+
+    for x in range(w):
+        text = str(x + 1)
+        tx = index_space + x * stud_size + stud_size // 2
+        ty = index_space // 4
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        draw.text(
+            (tx - text_w // 2, ty - text_h // 2),
+            text,
+            fill=(0, 0, 0),
+            font=font,
+        )
+
+    for y in range(h):
+        text = str(y + 1)
+        tx = index_space // 4
+        ty = index_space + y * stud_size + stud_size // 2
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        draw.text(
+            (tx - text_w // 2, ty - text_h // 2),
+            text,
+            fill=(0, 0, 0),
+            font=font,
+        )
 
     for y, row in enumerate(matrix):
         for x, piece in enumerate(row):
-            x0 = x * stud_size
-            y0 = y * stud_size
+            x0 = index_space + x * stud_size
+            y0 = index_space + y * stud_size
             x1 = x0 + stud_size
             y1 = y0 + stud_size
 
