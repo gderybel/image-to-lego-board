@@ -1,9 +1,13 @@
 from functools import lru_cache
 from LegoColor import LegoColor
 from LegoType import LegoType
+from urllib.parse import urlencode, urlparse, urlunparse
 
 
 class LegoPiece:
+
+    baseUrl = "https://www.bricklink.com/v2/catalog/catalogitem.page"
+
     def __init__(self, reference: LegoType, color: LegoColor, size: tuple[int, int]):
         self.reference = reference
         self.color = color
@@ -19,6 +23,14 @@ class LegoPiece:
         raise ValueError(
             f"No baseplate with size {size}. Supported sizes: {[bp.size for bp in lego_baseplates]}"
         )
+
+    def get_bricklink_url(self):
+        baseUrl = urlparse(self.baseUrl)
+        query_parameters = urlencode(
+            {"P": self.reference, "C": self.color.bricklink_id}
+        )
+        fragment = f"T=S&C={self.color.bricklink_id}"
+        return urlunparse(baseUrl._replace(query=query_parameters, fragment=fragment))
 
 
 lego_baseplates = [
