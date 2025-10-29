@@ -11,8 +11,7 @@ class BrickLinkConnector:
 
     @staticmethod
     def get_piece_price(piece: LegoPiece) -> float:
-
-        url = f"{BrickLinkConnector.buy_url}={piece.id}"
+        url = f"{BrickLinkConnector.buy_url}{piece.id}"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -25,6 +24,23 @@ class BrickLinkConnector:
             except ValueError:
                 return 0.0
         return 0.0
+
+    @staticmethod
+    def get_piece_stock(url: str) -> int:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, "html.parser")
+        element = soup.find(string=lambda text: text and "Lots For Sale" in text)
+        if element:
+            quantity = element.split("Lots For Sale")[0].strip()
+            return int(quantity)
+        return 0
+        # TODO: should be based on url https://www.bricklink.com/v2/catalog/catalogitem.page?P=3024&C=222#T=S&C=222&O={%22color%22:%22222%22,%22minqty%22:%22281%22,%22iconly%22:0}
+        # where minqty should be adjusted and text "X Items Found" should be parsed
 
     @staticmethod
     @lru_cache(maxsize=255)

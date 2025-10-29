@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from collections import Counter
 from Color import Color
+from BrickLinkConnector import BrickLinkConnector
 
 
 def init_parse() -> argparse.ArgumentParser:
@@ -84,8 +85,9 @@ def get_block_list(matrix: list[list[LegoPiece]]) -> None:
     for (ref, col, size, url), count in counts.most_common():
         plural = "s" if count != 1 else ""
         size_str = f"{size[0]}x{size[1]}"
+        stock = BrickLinkConnector.get_piece_stock(url)
         print(
-            f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str})"
+            f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})"
         )
 
 

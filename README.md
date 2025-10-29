@@ -13,7 +13,8 @@ The entire photo should be squared, and could fit various Lego board sizes.
 - [X] Add a matrix index on photo border
 - [ ] Connect with BrickLink
     - [X] Get colors from BrickLink
-    - [ ] Make an automatic basket
+    - [ ] Get stock from BrickLink for each piece
+    - [ ] Make a want list -> so the user can press "Easy Buy" on BrickLink to buy from them
     - [ ] Print price with details
 ...
 - [ ] Add relief on some images
