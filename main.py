@@ -78,14 +78,15 @@ def get_block_list(matrix: list[list[LegoPiece]]) -> None:
             piece.color, "name", getattr(piece.color, "hex_code", str(piece.color))
         )
         size = piece.size
-        url = piece.get_bricklink_url()
-        key = (ref, col, size, url)
+        key = (ref, col, size)
         counts[key] += 1
 
-    for (ref, col, size, url), count in counts.most_common():
+    for (ref, col, size), count in counts.most_common():
         plural = "s" if count != 1 else ""
         size_str = f"{size[0]}x{size[1]}"
-        stock = BrickLinkConnector.get_piece_stock(url)
+        stock, url = BrickLinkConnector.get_piece_stock(
+            ref=ref, color_id=col, quantity=count
+        )
         print(
             f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})"
         )

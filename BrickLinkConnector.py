@@ -1,12 +1,18 @@
 from LegoPiece import LegoPiece
+from LegoType import LegoType
 import requests
 from bs4 import BeautifulSoup
 import re
 from functools import lru_cache
+from urllib.parse import urlencode, quote
+from json import dumps
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import time
 
 
 class BrickLinkConnector:
-    buy_url = "https://www.bricklink.com/v2/catalog/catalogitem.page?P="
+    buy_url = "https://www.bricklink.com/v2/catalog/catalogitem.page"
     color_url = "https://v2.bricklink.com/en-fr/catalog/color-guide"
 
     @staticmethod
@@ -25,22 +31,40 @@ class BrickLinkConnector:
                 return 0.0
         return 0.0
 
-    @staticmethod
-    def get_piece_stock(url: str) -> int:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        }
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, "html.parser")
-        element = soup.find(string=lambda text: text and "Lots For Sale" in text)
-        if element:
-            quantity = element.split("Lots For Sale")[0].strip()
-            return int(quantity)
-        return 0
-        # TODO: should be based on url https://www.bricklink.com/v2/catalog/catalogitem.page?P=3024&C=222#T=S&C=222&O={%22color%22:%22222%22,%22minqty%22:%22281%22,%22iconly%22:0}
-        # where minqty should be adjusted and text "X Items Found" should be parsed
+    @classmethod
+    def get_bricklink_url(cls, ref: LegoType, color_id: int, quantity: int) -> str:
+        query_params = {"P": ref, "C": color_id}
+        fragment_data = {"color": color_id, "minqty": str(quantity), "iconly": 0}
+        fragment_encoded = quote(
+            dumps(fragment_data, separators=(",", ":")), safe="{}:,"
+        )
+        return f"{cls.buy_url}?{urlencode(query_params)}#T=S&C={color_id}&O={fragment_encoded}"
+
+    @classmethod
+    def get_piece_stock(
+        cls, ref: LegoType, color_id: int, quantity: int
+    ) -> tuple[int, str]:
+        options = Options()
+        options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu")
+
+        driver = webdriver.Chrome(options=options)
+
+        url = cls.get_bricklink_url(ref, color_id, quantity)
+        driver.get(url)
+        time.sleep(5)  # Wait for JS to load
+
+        html = driver.page_source
+        driver.quit()
+
+        soup = BeautifulSoup(html, "html.parser")
+        element = soup.find("span", {"id": "_idtxtTotalFound"})
+        if element and element.text.strip():
+            text = element.text.strip()
+            number = int(text.split()[0].replace(",", ""))
+            return number, url
+
+        return 0, url
 
     @staticmethod
     @lru_cache(maxsize=255)

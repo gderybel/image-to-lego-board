@@ -4,3 +4,4 @@ pillow
 bs4
 requests
 lru_cache
+selenium
