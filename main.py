@@ -70,6 +70,7 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
 def get_block_list(matrix: list[list[LegoPiece]]) -> None:
     flat = [cell for row in matrix for cell in row]
     counts = Counter()
+    # wanted_list = BrickLinkConnector.create_wanted_list()
 
     for piece in flat:
         # group by reference, color name, and size
@@ -87,6 +88,8 @@ def get_block_list(matrix: list[list[LegoPiece]]) -> None:
         stock, url = BrickLinkConnector.get_piece_stock(
             ref=ref, color_id=col, quantity=count
         )
+        # if stock > 0:
+        #     BrickLinkConnector.add_piece_to_wanted_list(wanted_list, piece, count)
         print(
             f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})"
         )

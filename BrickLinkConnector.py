@@ -9,6 +9,8 @@ from json import dumps
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
+from WantedList import WantedList
+import json
 
 
 class BrickLinkConnector:
@@ -127,3 +129,53 @@ class BrickLinkConnector:
                 )
 
         return colors
+
+    @staticmethod
+    def create_wanted_list(name: str, description: str = None) -> str:
+        url = "https://www.bricklink.com/ajax/clone/wanted/editList.ajax"
+        data = {"wantedMoreName": name, "wantedMoreDesc": description, "action": "C"}
+        cookies = {}
+        response = requests.post(url, data=data, cookies=cookies)
+        if response.status_code == 200:
+            try:
+                result = response.json()
+            except ValueError:
+                print("Réponse non JSON :", response.text)
+                return None
+
+            id = result.get("wantedMoreID")
+
+            return WantedList(id, name, description)
+
+    @staticmethod
+    def add_piece_to_wanted_list(
+        wanted_list: WantedList, piece: LegoPiece, quantity: int
+    ) -> bool:
+        url = "https://www.bricklink.com/ajax/clone/wanted/add.ajax"
+
+        wanted_item = [
+            {
+                "itemID": piece.reference,
+                "colorID": piece.color.bricklink_id,
+                "wantedQty": quantity,
+                "wantedQtyFilled": 0,
+                "wantedNew": "N",
+                "wantedNotify": "N",
+                "wantedRemarks": None,
+                "wantedPrice": None,
+            }
+        ]
+
+        data = {
+            "wantedItemStr": json.dumps(wanted_item),
+            "wantedMoreID": wanted_list.id,
+            "sourceLocation": 1300,
+        }
+
+        cookies = {}
+
+        response = requests.post(url, data=data, cookies=cookies)
+
+        if response.status_code == 200:
+            return True
+        return False
