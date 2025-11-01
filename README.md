@@ -14,6 +14,7 @@ The entire photo should be squared, and could fit various Lego board sizes.
 - [ ] Connect with BrickLink
     - [X] Get colors from BrickLink
     - [X] Get stock from BrickLink for each piece
+        - [ ] If stock is zero for a piece, try to get another close color
     - [ ] Make a want list -> so the user can press "Easy Buy" on BrickLink to buy from them
     - [ ] Print price with details
 ...
