@@ -1,12 +1,12 @@
-from LegoPiece import LegoPiece
-from LegoColor import LegoColor
-from LegoType import LegoType
+from Brick.Piece import Piece
+from Brick.Type import Type
+from BrickLink.Color import Color as BrickLinkColor
 import argparse
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from collections import Counter
 from Color import Color
-from BrickLinkConnector import BrickLinkConnector
+from BrickLink.Connector import Connector
 
 
 def init_parse() -> argparse.ArgumentParser:
@@ -28,12 +28,12 @@ def init_parse() -> argparse.ArgumentParser:
         "image_path", help="Path to the input image file", type=valid_image_path
     )
 
-    def valid_size(s: str) -> LegoPiece:
+    def valid_size(s: str) -> Piece:
         try:
             s = int(s)
         except ValueError:
             raise argparse.ArgumentTypeError(f"size '{s}' is not a valid integer")
-        return LegoPiece.get_lego_baseplate_by_size(s)
+        return Piece.get_baseplate_by_size(s)
 
     parser.add_argument(
         "-s",
@@ -57,27 +57,25 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     # transform colors for each pixel to nearest Lego color
     mapped = []
     for r, g, b in pixels:
-        closest_color = LegoColor.get_closest_lego_color(Color((r, g, b)))
-        mapped.append(LegoPiece(LegoType.PLATE, closest_color, (1, 1)))
+        closest_color = BrickLinkColor.get_closest_bricklink_color(Color(r, g, b))
+        mapped.append(Piece(Type.PLATE, closest_color, (1, 1)))
 
     # Turn flat mapped list into matrix rows (height rows, each width long)
-    matrix: list[list[LegoPiece]] = [
+    matrix: list[list[Piece]] = [
         mapped[row_start : row_start + w] for row_start in range(0, w * h, w)
     ]
     return matrix
 
 
-def get_block_list(matrix: list[list[LegoPiece]]) -> None:
+def get_block_list(matrix: list[list[Piece]]) -> None:
     flat = [cell for row in matrix for cell in row]
     counts = Counter()
-    # wanted_list = BrickLinkConnector.create_wanted_list()
+    # wanted_list = Connector.create_wanted_list()
 
     for piece in flat:
         # group by reference, color name, and size
         ref = getattr(piece.reference, "name", str(piece.reference))
-        col = getattr(
-            piece.color, "name", getattr(piece.color, "hex_code", str(piece.color))
-        )
+        col = getattr(piece.color, "id", str(piece.color))
         size = piece.size
         key = (ref, col, size)
         counts[key] += 1
@@ -85,18 +83,16 @@ def get_block_list(matrix: list[list[LegoPiece]]) -> None:
     for (ref, col, size), count in counts.most_common():
         plural = "s" if count != 1 else ""
         size_str = f"{size[0]}x{size[1]}"
-        stock, url = BrickLinkConnector.get_piece_stock(
-            ref=ref, color_id=col, quantity=count
-        )
+        stock, url = Connector.get_piece_stock(ref=ref, color_id=col, quantity=count)
         # if stock > 0:
-        #     BrickLinkConnector.add_piece_to_wanted_list(wanted_list, piece, count)
+        #     Connector.add_piece_to_wanted_list(wanted_list, piece, count)
         print(
             f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})"
         )
 
 
 def render_matrix_to_image(
-    matrix: list[list[LegoPiece]], stud_size: int = 20, show_studs: bool = True
+    matrix: list[list[Piece]], stud_size: int = 20, show_studs: bool = True
 ) -> Image.Image:
     h = len(matrix)
     w = len(matrix[0]) if h else 0
@@ -173,9 +169,9 @@ def main():
     get_block_list(matrix)
 
     out_image = render_matrix_to_image(matrix, stud_size=20, show_studs=True)
-    out_path = image_path.parent / f"{image_path.stem}_lego.png"
+    out_path = image_path.parent / f"{image_path.stem}_brick.png"
     out_image.save(out_path)
-    print(f"Saved rendered lego image to: {out_path}")
+    print(f"Saved rendered Lego image to: {out_path}")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-class LegoType:
-    # Lego type references
+class Type:
+    # Brick type references
     TILE = "3070"
     PLATE = "3024"
     SLOPE = "54200"

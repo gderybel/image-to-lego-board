@@ -1,21 +1,21 @@
 from functools import lru_cache
-from LegoColor import LegoColor
-from LegoType import LegoType
+from BrickLink.Color import Color
+from Brick.Type import Type
 from urllib.parse import urlencode, urlparse, urlunparse
 
 
-class LegoPiece:
+class Piece:
 
     baseUrl = "https://www.bricklink.com/v2/catalog/catalogitem.page"
 
-    def __init__(self, reference: LegoType, color: LegoColor, size: tuple[int, int]):
+    def __init__(self, reference: Type, color: Color, size: tuple[int, int]):
         self.reference = reference
         self.color = color
         self.size = size  # e.g., (2, 4) for a 2x4 brick
 
     @staticmethod
     @lru_cache(maxsize=256)
-    def get_lego_baseplate_by_size(size: int) -> "LegoPiece":
+    def get_baseplate_by_size(size: int) -> "Piece":
         size = (size, size)
         for lego_baseplate in lego_baseplates:
             if lego_baseplate.size == size:
@@ -34,22 +34,10 @@ class LegoPiece:
 
 
 lego_baseplates = [
-    LegoPiece(
-        LegoType.BASEPLATE_14_14, LegoColor.get_lego_color_by_name("White"), (14, 14)
-    ),
-    LegoPiece(
-        LegoType.BASEPLATE_16_16, LegoColor.get_lego_color_by_name("White"), (16, 16)
-    ),
-    LegoPiece(
-        LegoType.BASEPLATE_24_24, LegoColor.get_lego_color_by_name("White"), (24, 24)
-    ),
-    LegoPiece(
-        LegoType.BASEPLATE_32_32, LegoColor.get_lego_color_by_name("White"), (32, 32)
-    ),
-    LegoPiece(
-        LegoType.BASEPLATE_40_40, LegoColor.get_lego_color_by_name("White"), (40, 40)
-    ),
-    LegoPiece(
-        LegoType.BASEPLATE_48_48, LegoColor.get_lego_color_by_name("White"), (48, 48)
-    ),
+    Piece(Type.BASEPLATE_14_14, Color.get_bricklink_color_by_name("White"), (14, 14)),
+    Piece(Type.BASEPLATE_16_16, Color.get_bricklink_color_by_name("White"), (16, 16)),
+    Piece(Type.BASEPLATE_24_24, Color.get_bricklink_color_by_name("White"), (24, 24)),
+    Piece(Type.BASEPLATE_32_32, Color.get_bricklink_color_by_name("White"), (32, 32)),
+    Piece(Type.BASEPLATE_40_40, Color.get_bricklink_color_by_name("White"), (40, 40)),
+    Piece(Type.BASEPLATE_48_48, Color.get_bricklink_color_by_name("White"), (48, 48)),
 ]
