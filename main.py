@@ -3,6 +3,7 @@ from Brick.Type import Type
 from BrickLink.Color import Color as BrickLinkColor
 import argparse
 from pathlib import Path
+from tqdm import tqdm
 from PIL import Image, ImageDraw, ImageFont
 from collections import Counter
 from Color import Color
@@ -56,7 +57,7 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
 
     # transform colors for each pixel to nearest Lego color
     mapped = []
-    for r, g, b in pixels:
+    for r, g, b in tqdm(pixels, desc="Mapping colors", unit="pixel"):
         closest_color = BrickLinkColor.get_closest_bricklink_color(Color(r, g, b))
         mapped.append(Piece(Type.PLATE, closest_color, (1, 1)))
 
@@ -164,10 +165,15 @@ def main():
     image_path = args.image_path
     baseplate = args.size
 
+    print(f"Rendering {image_path} to matrix...")
     matrix = image_to_matrix(image_path, baseplate.size)
+    print("Matrix completed.")
 
+    print("Building baseplate...")
     get_block_list(matrix)
+    print("Baseplate fully prepared.")
 
+    print("Rendering matrix to image...")
     out_image = render_matrix_to_image(matrix, stud_size=20, show_studs=True)
     out_path = image_path.parent / f"{image_path.stem}_brick.png"
     out_image.save(out_path)

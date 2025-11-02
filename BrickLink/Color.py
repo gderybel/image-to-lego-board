@@ -1,13 +1,35 @@
 from functools import lru_cache
 from Color import Color as BaseColor
+from Brick.Type import Type
 
 
 class Color:
-    def __init__(self, id: str, name: str, hex_code: str):
+    # types
+    SOLID = "solid"
+    PEARL = "pearl"
+    METALLIC = "metallic"
+    TRANS = "trans"
+    GLITTER = "glitter"
+    CHROME = "chrome"
+
+    def __init__(self, id: str, name: str, hex_code: str, stock: int):
         self.id = id
         self.name = name
         self.hex_code = hex_code
+        self.stock = stock
         self.rgb_code = self._to_rgb(hex_code)
+
+        self.type = self.SOLID
+        if Color.PEARL in self.name.lower():
+            self.type = Color.PEARL
+        elif Color.METALLIC in self.name.lower():
+            self.type = Color.METALLIC
+        elif Color.TRANS in self.name.lower():
+            self.type = Color.TRANS
+        elif Color.GLITTER in self.name.lower():
+            self.type = Color.GLITTER
+        elif Color.CHROME in self.name.lower():
+            self.type = Color.CHROME
 
     @staticmethod
     def _to_rgb(v) -> tuple[int, int, int]:
@@ -20,14 +42,23 @@ class Color:
         raise ValueError(f"unsupported color format: {v!r}")
 
     @staticmethod
+    @lru_cache(maxsize=None)
     def get_closest_bricklink_color(color: BaseColor) -> "Color":
         from BrickLink.Connector import Connector
 
-        bricklink_colors = Connector.get_piece_colors()
+        bricklink_colors = Connector.get_piece_colors_with_stock(Type.PLATE)
+
+        # Only get solid and stock > 10 colors
+        filtered_colors = [
+            color
+            for color in bricklink_colors
+            if color.type == Color.SOLID and color.stock > 10
+        ]
+
         r1, g1, b1 = color.rgb
         best_dist = float("inf")
         best_color = None
-        for bricklink_color in bricklink_colors:
+        for bricklink_color in filtered_colors:
             r2, g2, b2 = bricklink_color.rgb_code
             dist = (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2
             if dist < best_dist:
@@ -42,7 +73,7 @@ class Color:
     def get_bricklink_color_by_name(name: str) -> "Color":
         from BrickLink.Connector import Connector
 
-        bricklink_colors = Connector.get_piece_colors()
+        bricklink_colors = Connector.get_piece_colors_with_stock(Type.PLATE)
         for bricklink_color in bricklink_colors:
             if bricklink_color.name == name:
                 return bricklink_color

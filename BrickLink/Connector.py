@@ -17,6 +17,13 @@ import json
 class Connector:
     buy_url = "https://www.bricklink.com/v2/catalog/catalogitem.page"
     color_url = "https://v2.bricklink.com/en-fr/catalog/color-guide"
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/130.0.0.0 Safari/537.36"
+        ),
+    }
 
     @staticmethod
     def get_piece_price(piece: Piece) -> float:
@@ -44,6 +51,7 @@ class Connector:
         return f"{cls.buy_url}?{urlencode(query_params)}#T=S&C={color_id}&O={fragment_encoded}"
 
     @classmethod
+    @lru_cache(maxsize=None)
     def get_piece_stock(
         cls, ref: Type, color_id: int, quantity: int
     ) -> tuple[int, str]:
@@ -55,7 +63,7 @@ class Connector:
 
         url = cls.get_bricklink_url(ref, color_id, quantity)
         driver.get(url)
-        time.sleep(5)  # Wait for JS to load
+        time.sleep(3)  # Wait for JS to load
 
         html = driver.page_source
         driver.quit()
@@ -70,59 +78,51 @@ class Connector:
         return 0, url
 
     @staticmethod
-    @lru_cache(maxsize=255)
-    def get_piece_colors() -> list[BrickLinkColor]:
-        url = f"{Connector.color_url}"
-        response = requests.get(url)
+    @lru_cache(maxsize=None)
+    def get_piece_colors_with_stock(ref: Type) -> list[BrickLinkColor]:
+        url = f"{Connector.buy_url}?P={ref}#T=C"
+        response = requests.get(url, headers=Connector.headers)
         soup = BeautifulSoup(response.text, "html.parser")
-
-        pattern = re.compile(
-            r"--bl-castor-table-swatch-with-image-background-color:\s*(#[0-9a-fA-F]{3,6})"
-        )
 
         colors = []
 
-        for tr in soup.find_all("tr"):
-            color_hex = None
-            bricklink_name = None
-            bricklink_id = None
-            # lego_name = None
-            # lego_id = None
+        lots_div = soup.find(
+            "div", class_="pciColorTitle", string=lambda s: s and "Lots For Sale:" in s
+        )
+        if lots_div:
+            td_parent = lots_div.find_parent("td")
+            for flex_div in td_parent.find_all(
+                "div", style=lambda s: s and "display:flex" in s
+            ):
+                color_div = flex_div.find("div", class_="pciColorTabListItem")
+                text_div = color_div.find_next_sibling("div") if color_div else None
+                if not text_div:
+                    continue
 
-            td_with_style = tr.find("td", attrs={"data-testid": "SwatchWithImage"})
-            if td_with_style and "style" in td_with_style.attrs:
-                match = pattern.search(td_with_style["style"])
-                if match:
-                    color_hex = match.group(1)
+                a_tag = text_div.find(lambda t: t.name and t.name.lower() == "a")
+                if not a_tag:
+                    continue
 
-            color_info_td = tr.find(
-                "td", class_="color-list-wide-viewport_cellListViewColorName__rVQgC"
-            )
-            if color_info_td:
-                name_tag = color_info_td.find("p")
-                if name_tag:
-                    bricklink_name = name_tag.get_text(strip=True)
-                # span_tag = color_info_td.find("span")
-                # if span_tag:
-                #     lego_color = span_tag.get_text(strip=True).replace(
-                #         "LEGO Color:", ""
-                #     )
-                #     match = re.match(r"^(.*?)\s*-\s*(\d+)$", lego_color)
-                #     if match:
-                #         lego_name = match.group(1)
-                #         lego_id = int(match.group(2))
+                style = color_div.get("style", "")
+                match_color = re.search(r"#([0-9A-Fa-f]{6})", style)
+                color_hex = match_color.group(1) if match_color else None
 
-            tds = tr.find_all("td")
-            if tds:
-                bricklink_id = tds[-1].get_text(strip=True)
-
-            if bricklink_id and bricklink_name and color_hex:
-                colors.append(
-                    BrickLinkColor(
-                        id=bricklink_id, name=bricklink_name, hex_code=color_hex
-                    )
+                onclick = a_tag.get("onclick", "")
+                match_id = re.search(
+                    r"showInventoryWithColor\(\s*(\d+)\s*\)", onclick, re.IGNORECASE
                 )
+                color_id = int(match_id.group(1)) if match_id else None
 
+                color_name = a_tag.get_text(strip=True)
+                text = text_div.get_text(strip=True)
+                match_stock = re.search(r"\((\d+)\)", text)
+                color_stock = int(match_stock.group(1)) if match_stock else None
+
+                if color_hex:
+                    # Used to filter for the first line 'Non Applicable'
+                    colors.append(
+                        BrickLinkColor(color_id, color_name, color_hex, color_stock)
+                    )
         return colors
 
     @staticmethod
