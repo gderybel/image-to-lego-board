@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 from collections import Counter
 from Color import Color
 from BrickLink.Connector import Connector
+from datetime import datetime
 
 
 def init_parse() -> argparse.ArgumentParser:
@@ -47,6 +48,11 @@ def init_parse() -> argparse.ArgumentParser:
     return parser
 
 
+def print_color(text: str, color: tuple[int, int, int]):
+    r, g, b = color
+    print(f"\033[48;2;{r};{g};{b}m  {text}  \033[0m")
+
+
 def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     w, h = size
     img = Image.open(image_path).convert("RGB").resize((w, h), Image.LANCZOS)
@@ -71,24 +77,25 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
 def get_block_list(matrix: list[list[Piece]]) -> None:
     flat = [cell for row in matrix for cell in row]
     counts = Counter()
-    # wanted_list = Connector.create_wanted_list()
+    # wanted_list = Connector.create_wanted_list(f"Project {datetime.now()}")
 
     for piece in flat:
         # group by reference, color name, and size
         ref = getattr(piece.reference, "name", str(piece.reference))
         col = getattr(piece.color, "id", str(piece.color))
+        col_rgb = getattr(piece.color, "rgb_code", (255, 255, 255))
         size = piece.size
-        key = (ref, col, size)
+        key = (ref, col, size, col_rgb)
         counts[key] += 1
 
-    for (ref, col, size), count in counts.most_common():
+    for (ref, col, size, col_rgb), count in counts.most_common():
         plural = "s" if count != 1 else ""
         size_str = f"{size[0]}x{size[1]}"
         stock, url = Connector.get_piece_stock(ref=ref, color_id=col, quantity=count)
-        # if stock > 0:
-        #     Connector.add_piece_to_wanted_list(wanted_list, piece, count)
-        print(
-            f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})"
+        # Connector.add_piece_to_wanted_list(wanted_list, piece, count)
+        print_color(
+            f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})",
+            col_rgb,
         )
 
 

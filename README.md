@@ -20,6 +20,8 @@ The entire photo should be squared, and could fit various Lego board sizes.
     - [ ] Make a want list -> so the user can press "Easy Buy" on BrickLink to buy from them
     - [ ] Print price with details
 - [ ] Add argument to choose the type of brick used
+- [ ] Add option to choose if user wants to create a wishlist
+- [ ] Update get closest color
 ...
 - [ ] Add relief on some images
 
