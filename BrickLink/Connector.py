@@ -9,7 +9,7 @@ from json import dumps
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
-from BrickLink.WantedList import WantedList
+from BrickLink.Wishlist import Wishlist
 from BrickLink.Color import Color as BrickLinkColor
 import json
 
@@ -126,32 +126,41 @@ class Connector:
         return colors
 
     @staticmethod
-    def create_wanted_list(name: str, description: str = None) -> str:
-        url = "https://www.bricklink.com/ajax/clone/wanted/editList.ajax"
-        data = {"wantedMoreName": name, "wantedMoreDesc": description, "action": "C"}
-        cookies = {}
-        response = requests.post(url, data=data, cookies=cookies)
-        if response.status_code == 200:
-            try:
-                result = response.json()
-            except ValueError:
-                print("Réponse non JSON :", response.text)
-                return None
-
-            id = result.get("wantedMoreID")
-
-            return WantedList(id, name, description)
+    def get_wishlist_url(wishlist: Wishlist) -> str:
+        return f"https://www.bricklink.com/v2/wanted/search.page?wantedMoreID={wishlist.id}"
 
     @staticmethod
-    def add_piece_to_wanted_list(
-        wanted_list: WantedList, piece: Piece, quantity: int
+    def create_wishlist(name: str, description: str = None, jwt: str = None) -> str:
+        url = "https://www.bricklink.com/ajax/clone/wanted/editList.ajax"
+        data = {"wantedMoreName": name, "wantedMoreDesc": description, "action": "C"}
+        cookies = {"bricklink.bricklink-account.jwt": jwt}
+        response = requests.post(
+            url, data=data, cookies=cookies, headers=Connector.headers
+        )
+        if response.status_code == 200:
+            result = response.json()
+            id = result.get("wantedMoreID")
+            if not id:
+                raise Exception(
+                    f"An error occured while creating wishlist : [{response.status_code}] {result.get('returnMessage', response.content)}"
+                )
+
+            return Wishlist(id, name, description)
+        else:
+            raise Exception(
+                f"An error occured while creating wishlist : [{response.status_code}] {response.content}"
+            )
+
+    @staticmethod
+    def add_piece_to_wishlist(
+        wishlist: Wishlist, piece: Piece, quantity: int, jwt: str = None
     ) -> bool:
         url = "https://www.bricklink.com/ajax/clone/wanted/add.ajax"
 
         wanted_item = [
             {
-                "itemID": piece.reference,
-                "colorID": piece.color.bricklink_id,
+                "itemID": piece.id,
+                "colorID": piece.color.id,
                 "wantedQty": quantity,
                 "wantedQtyFilled": 0,
                 "wantedNew": "N",
@@ -163,14 +172,18 @@ class Connector:
 
         data = {
             "wantedItemStr": json.dumps(wanted_item),
-            "wantedMoreID": wanted_list.id,
+            "wantedMoreID": wishlist.id,
             "sourceLocation": 1300,
         }
 
-        cookies = {}
+        cookies = {"bricklink.bricklink-account.jwt": jwt}
 
-        response = requests.post(url, data=data, cookies=cookies)
+        headers = Connector.headers
+        headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
 
-        if response.status_code == 200:
-            return True
-        return False
+        response = requests.post(url, data=data, cookies=cookies, headers=headers)
+
+        if response.status_code != 200 or response.json().get("returnCode") != 0:
+            raise Exception(
+                f"An error occured when adding an item to wishlist : [{response.status_code}] {response.content}."
+            )

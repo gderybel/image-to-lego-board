@@ -1,5 +1,6 @@
 from Brick.Piece import Piece
 from Brick.Type import Type
+from BrickLink.Item import Item
 from BrickLink.Color import Color as BrickLinkColor
 import argparse
 from pathlib import Path
@@ -45,6 +46,13 @@ def init_parse() -> argparse.ArgumentParser:
         help="Size of the Lego baseplate (default: 32)",
     )
 
+    parser.add_argument(
+        "-j",
+        "--jwt",
+        help='JWT Token for BrickLink auth, value is from Cookie named "bricklink.bricklink-account.jwt". If given, will create a wishlist.',
+        default=None,
+    )
+
     return parser
 
 
@@ -65,7 +73,7 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     mapped = []
     for r, g, b in tqdm(pixels, desc="Mapping colors", unit="pixel"):
         closest_color = BrickLinkColor.get_closest_bricklink_color(Color(r, g, b))
-        mapped.append(Piece(Type.PLATE, closest_color, (1, 1)))
+        mapped.append(Piece(Type.PLATE, closest_color, (1, 1), Item.PLATE))
 
     # Turn flat mapped list into matrix rows (height rows, each width long)
     matrix: list[list[Piece]] = [
@@ -74,29 +82,41 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     return matrix
 
 
-def get_block_list(matrix: list[list[Piece]]) -> None:
+def get_block_list(matrix: list[list[Piece]], jwt: str = None) -> None:
     flat = [cell for row in matrix for cell in row]
     counts = Counter()
-    # wanted_list = Connector.create_wanted_list(f"Project {datetime.now()}")
+    piece_map = {}
+
+    if jwt:
+        wishlist = Connector.create_wishlist(f"Project {datetime.now()}", jwt=jwt)
 
     for piece in flat:
-        # group by reference, color name, and size
         ref = getattr(piece.reference, "name", str(piece.reference))
         col = getattr(piece.color, "id", str(piece.color))
         col_rgb = getattr(piece.color, "rgb_code", (255, 255, 255))
         size = piece.size
         key = (ref, col, size, col_rgb)
+
         counts[key] += 1
+        piece_map[key] = piece
 
     for (ref, col, size, col_rgb), count in counts.most_common():
         plural = "s" if count != 1 else ""
         size_str = f"{size[0]}x{size[1]}"
         stock, url = Connector.get_piece_stock(ref=ref, color_id=col, quantity=count)
-        # Connector.add_piece_to_wanted_list(wanted_list, piece, count)
+
+        if jwt:
+            piece = piece_map[(ref, col, size, col_rgb)]
+            Connector.add_piece_to_wishlist(wishlist, piece, count, jwt)
+
         print_color(
             f"You need {count} piece{plural} from {url} (ref: {ref}, color: {col}, size: {size_str}, stock: {stock})",
             col_rgb,
         )
+
+    if jwt:
+        url = Connector.get_wishlist_url(wishlist)
+        print(f"Wishlist `{wishlist.name}` created: {url}.")
 
 
 def render_matrix_to_image(
@@ -171,13 +191,14 @@ def main():
     args = parser.parse_args()
     image_path = args.image_path
     baseplate = args.size
+    jwt = args.jwt
 
     print(f"Rendering {image_path} to matrix...")
     matrix = image_to_matrix(image_path, baseplate.size)
     print("Matrix completed.")
 
     print("Building baseplate...")
-    get_block_list(matrix)
+    get_block_list(matrix, jwt)
     print("Baseplate fully prepared.")
 
     print("Rendering matrix to image...")
