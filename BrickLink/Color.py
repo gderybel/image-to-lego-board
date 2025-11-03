@@ -43,10 +43,10 @@ class Color:
 
     @staticmethod
     @lru_cache(maxsize=None)
-    def get_closest_bricklink_color(color: BaseColor) -> "Color":
+    def get_closest_bricklink_color(color: BaseColor, piece_type: Type) -> "Color":
         from BrickLink.Connector import Connector
 
-        bricklink_colors = Connector.get_piece_colors_with_stock(Type.PLATE)
+        bricklink_colors = Connector.get_piece_colors_with_stock(piece_type)
 
         # Only get solid and stock > 10 colors
         filtered_colors = [
@@ -70,10 +70,10 @@ class Color:
 
     @staticmethod
     @lru_cache(maxsize=256)
-    def get_bricklink_color_by_name(name: str) -> "Color":
+    def get_bricklink_color_by_name(name: str, piece_type: Type) -> "Color":
         from BrickLink.Connector import Connector
 
-        bricklink_colors = Connector.get_piece_colors_with_stock(Type.PLATE)
+        bricklink_colors = Connector.get_piece_colors_with_stock(piece_type)
         for bricklink_color in bricklink_colors:
             if bricklink_color.name == name:
                 return bricklink_color

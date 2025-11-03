@@ -53,6 +53,32 @@ def init_parse() -> argparse.ArgumentParser:
         default=None,
     )
 
+    available_types = {
+        "plate": Type.PLATE,
+        "plate_round": Type.PLATE_ROUND,
+        "slope": Type.SLOPE,
+        "tile": Type.TILE,
+    }
+
+    def valid_type(s: str) -> Type:
+        if s not in available_types:
+            valid_values = ", ".join(available_types.keys())
+            raise argparse.ArgumentTypeError(
+                f"Type '{s}' is not a valid type. Must be one of: {valid_values}"
+            )
+        return available_types[s]
+
+    parser.add_argument(
+        "-t",
+        "--type",
+        help=(
+            "Types available are:\n"
+            + ",".join(f" {key} ({value})" for key, value in available_types.items())
+        ),
+        default="plate",
+        type=valid_type,
+    )
+
     return parser
 
 
@@ -61,7 +87,9 @@ def print_color(text: str, color: tuple[int, int, int]):
     print(f"\033[48;2;{r};{g};{b}m  {text}  \033[0m")
 
 
-def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
+def image_to_matrix(
+    image_path: Path, size: tuple[int, int], piece_type: Type
+) -> list[list[str]]:
     w, h = size
     img = Image.open(image_path).convert("RGB").resize((w, h), Image.LANCZOS)
     # resized_path = image_path.parent / f"{image_path.stem}_resized_{w}x{h}.png"
@@ -72,8 +100,10 @@ def image_to_matrix(image_path: Path, size: tuple[int, int]) -> list[list[str]]:
     # transform colors for each pixel to nearest Lego color
     mapped = []
     for r, g, b in tqdm(pixels, desc="Mapping colors", unit="pixel"):
-        closest_color = BrickLinkColor.get_closest_bricklink_color(Color(r, g, b))
-        mapped.append(Piece(Type.PLATE, closest_color, (1, 1), Item.PLATE))
+        closest_color = BrickLinkColor.get_closest_bricklink_color(
+            Color(r, g, b), piece_type
+        )
+        mapped.append(Piece(piece_type, closest_color, (1, 1), Item.PLATE))
 
     # Turn flat mapped list into matrix rows (height rows, each width long)
     matrix: list[list[Piece]] = [
@@ -192,10 +222,9 @@ def main():
     image_path = args.image_path
     baseplate = args.size
     jwt = args.jwt
+    piece_type = args.type
 
-    print(f"Rendering {image_path} to matrix...")
-    matrix = image_to_matrix(image_path, baseplate.size)
-    print("Matrix completed.")
+    matrix = image_to_matrix(image_path, baseplate.size, piece_type)
 
     print("Building baseplate...")
     get_block_list(matrix, jwt)

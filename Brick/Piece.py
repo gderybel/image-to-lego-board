@@ -38,37 +38,37 @@ class Piece:
 lego_baseplates = [
     Piece(
         Type.BASEPLATE_14_14,
-        Color.get_bricklink_color_by_name("White"),
+        Color.get_bricklink_color_by_name("Green", Type.BASEPLATE_14_14),
         (14, 14),
         Item.BASEPLATE_14_14,
     ),
     Piece(
         Type.BASEPLATE_16_16,
-        Color.get_bricklink_color_by_name("White"),
+        Color.get_bricklink_color_by_name("White", Type.BASEPLATE_16_16),
         (16, 16),
         Item.BASEPLATE_16_16,
     ),
     Piece(
         Type.BASEPLATE_24_24,
-        Color.get_bricklink_color_by_name("White"),
+        Color.get_bricklink_color_by_name("Light Gray", Type.BASEPLATE_24_24),
         (24, 24),
         Item.BASEPLATE_24_24,
     ),
     Piece(
         Type.BASEPLATE_32_32,
-        Color.get_bricklink_color_by_name("White"),
+        Color.get_bricklink_color_by_name("White", Type.BASEPLATE_32_32),
         (32, 32),
         Item.BASEPLATE_32_32,
     ),
     Piece(
         Type.BASEPLATE_40_40,
-        Color.get_bricklink_color_by_name("White"),
+        Color.get_bricklink_color_by_name("Green", Type.BASEPLATE_40_40),
         (40, 40),
         Item.BASEPLATE_40_40,
     ),
     Piece(
         Type.BASEPLATE_48_48,
-        Color.get_bricklink_color_by_name("White"),
+        Color.get_bricklink_color_by_name("White", Type.BASEPLATE_48_48),
         (48, 48),
         Item.BASEPLATE_48_48,
     ),

@@ -8,5 +8,5 @@ class Type:
     BASEPLATE_16_16 = "3867"
     BASEPLATE_24_24 = "367a"
     BASEPLATE_32_32 = "3811"
-    BASEPLATE_40_40 = "bb040"
+    BASEPLATE_40_40 = "bb0040"
     BASEPLATE_48_48 = "4186"
