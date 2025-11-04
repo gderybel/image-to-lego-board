@@ -122,6 +122,10 @@ def get_block_list(matrix: list[list[Piece]], jwt: str = None) -> None:
 
     if jwt:
         wishlist = Connector.create_wishlist(f"Project {datetime.now()}", jwt=jwt)
+        # Add baseplate
+        Connector.add_piece_to_wishlist(
+            wishlist, Piece.get_baseplate_by_size(len(matrix)), 1, jwt
+        )
 
     for piece in flat:
         ref = getattr(piece.reference, "name", str(piece.reference))
