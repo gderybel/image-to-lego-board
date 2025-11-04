@@ -10,6 +10,7 @@ from collections import Counter
 from Color import Color
 from BrickLink.Connector import Connector
 from datetime import datetime
+from skimage import io, color
 
 
 def init_parse() -> argparse.ArgumentParser:
@@ -92,16 +93,18 @@ def image_to_matrix(
 ) -> list[list[str]]:
     w, h = size
     img = Image.open(image_path).convert("RGB").resize((w, h), Image.LANCZOS)
-    # resized_path = image_path.parent / f"{image_path.stem}_resized_{w}x{h}.png"
-    # print(f"Saved resized image to: {resized_path}")
-    # img.save(resized_path)
-    pixels = list(img.getdata())
+    resized_path = image_path.parent / f"{image_path.stem}_resized_{w}x{h}.png"
+    img.save(resized_path)
+
+    rgb = io.imread(resized_path)
+    pixels = color.rgb2lab(rgb)
+    flat_pixels = pixels.reshape(-1, 3)
 
     # transform colors for each pixel to nearest Lego color
     mapped = []
-    for r, g, b in tqdm(pixels, desc="Mapping colors", unit="pixel"):
+    for l, a, b in tqdm(flat_pixels, desc="Mapping colors", unit="pixel"):
         closest_color = BrickLinkColor.get_closest_bricklink_color(
-            Color(r, g, b), piece_type
+            Color(l, a, b), piece_type
         )
         mapped.append(Piece(piece_type, closest_color, (1, 1), Item.PLATE))
 

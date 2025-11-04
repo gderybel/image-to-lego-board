@@ -1,6 +1,7 @@
+from Color import Color as BaseColor, CIEDE2000
 from functools import lru_cache
-from Color import Color as BaseColor
 from Brick.Type import Type
+from skimage import color
 
 
 class Color:
@@ -18,6 +19,7 @@ class Color:
         self.hex_code = hex_code
         self.stock = stock
         self.rgb_code = self._to_rgb(hex_code)
+        self.lab_code = self._to_lab(hex_code)
 
         self.type = self.SOLID
         if Color.PEARL in self.name.lower():
@@ -42,6 +44,12 @@ class Color:
         raise ValueError(f"unsupported color format: {v!r}")
 
     @staticmethod
+    def _to_lab(v) -> tuple[int, int, int]:
+        rgb = Color._to_rgb(v)
+        rgb_normalized = [c / 255 for c in rgb]
+        return color.rgb2lab(rgb_normalized)
+
+    @staticmethod
     @lru_cache(maxsize=None)
     def get_closest_bricklink_color(color: BaseColor, piece_type: Type) -> "Color":
         from BrickLink.Connector import Connector
@@ -54,13 +62,10 @@ class Color:
             for color in bricklink_colors
             if color.type == Color.SOLID and color.stock > 10
         ]
-
-        r1, g1, b1 = color.rgb
         best_dist = float("inf")
         best_color = None
         for bricklink_color in filtered_colors:
-            r2, g2, b2 = bricklink_color.rgb_code
-            dist = (r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2
+            dist = CIEDE2000(color.lab, bricklink_color.lab_code)
             if dist < best_dist:
                 best_dist = dist
                 best_color = bricklink_color

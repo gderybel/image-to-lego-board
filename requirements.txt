@@ -6,3 +6,4 @@ requests
 lru_cache
 selenium
 tqdm
+scikit-image
