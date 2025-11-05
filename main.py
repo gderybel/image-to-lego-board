@@ -11,6 +11,7 @@ from Color import Color
 from BrickLink.Connector import Connector
 from datetime import datetime
 from skimage import io, color
+from os.path import basename
 
 
 def init_parse() -> argparse.ArgumentParser:
@@ -115,13 +116,15 @@ def image_to_matrix(
     return matrix
 
 
-def get_block_list(matrix: list[list[Piece]], jwt: str = None) -> None:
+def get_block_list(matrix: list[list[Piece]], image_name: str, jwt: str = None) -> None:
     flat = [cell for row in matrix for cell in row]
     counts = Counter()
     piece_map = {}
 
     if jwt:
-        wishlist = Connector.create_wishlist(f"Project {datetime.now()}", jwt=jwt)
+        wishlist = Connector.create_wishlist(
+            f"Project {image_name} {datetime.now()}", jwt=jwt
+        )
         # Add baseplate
         Connector.add_piece_to_wishlist(
             wishlist, Piece.get_baseplate_by_size(len(matrix)), 1, jwt
@@ -227,6 +230,7 @@ def main():
     parser = init_parse()
     args = parser.parse_args()
     image_path = args.image_path
+    image_name = basename(image_path)
     baseplate = args.size
     jwt = args.jwt
     piece_type = args.type
@@ -234,7 +238,7 @@ def main():
     matrix = image_to_matrix(image_path, baseplate.size, piece_type)
 
     print("Building baseplate...")
-    get_block_list(matrix, jwt)
+    get_block_list(matrix, image_name, jwt)
     print("Baseplate fully prepared.")
 
     print("Rendering matrix to image...")

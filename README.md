@@ -21,8 +21,8 @@ The entire photo should be squared, and could fit various Lego board sizes.
 - [X] Add argument to choose the type of brick used
 - [X] Update get closest color
 - [X] Add baseplate to wishlist
-- [ ] Print approximative price
-- [ ] Wishlist name should contain picture name
+- [X] Print approximative price
+- [X] Wishlist name should contain picture name
 
 ## What is BrickLink ?
 BrickLink is a website where you can buy Lego pieces by unit. This app should build a basket with needed pieces.
